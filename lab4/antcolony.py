@@ -16,7 +16,7 @@ alpha = 1          # pheromone importance
 beta = 5           # heuristic importance
 rho = 0.5          # evaporation rate
 pheromone_init = 0.1
-iterations = 100
+iterations = 20    # Reduced for readability
 Q = 1              # pheromone deposit factor
 
 # Compute distance matrix
@@ -45,7 +45,12 @@ def select_next_city(current_city, visited):
         else:
             probabilities.append(0)
     probabilities = np.array(probabilities)
-    probabilities /= probabilities.sum()
+    probabilities_sum = probabilities.sum()
+    if probabilities_sum == 0:
+        # If no options, choose randomly from unvisited
+        unvisited = [c for c in range(num_cities) if c not in visited]
+        return np.random.choice(unvisited)
+    probabilities /= probabilities_sum
     return np.random.choice(range(num_cities), p=probabilities)
 
 def construct_solution():
@@ -94,10 +99,18 @@ for iteration in range(iterations):
     update_pheromone(solutions, lengths)
 
     min_length = min(lengths)
+    min_index = lengths.index(min_length)
+
     if min_length < best_length:
         best_length = min_length
-        best_route = solutions[lengths.index(min_length)]
+        best_route = solutions[min_index]
 
-print("Best Route:", best_route)
-print("Best Route Length:", best_length)
+    # Detailed iteration output
+    print(f"Iteration {iteration + 1}:")
+    print(f"  Best route this iteration: {solutions[min_index]}")
+    print(f"  Length of best route this iteration: {min_length:.4f}")
+    print(f"  Global best route so far: {best_route}")
+    print(f"  Length of global best route so far: {best_length:.4f}\n")
 
+print("Final Best Route:", best_route)
+print("Final Best Route Length:", best_length)
