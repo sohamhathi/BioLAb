@@ -23,10 +23,12 @@ def fitness_function(params):
 
 # --- Particle class ---
 class Particle:
-    def _init_(self, bounds):
+    def __init__(self, bounds):
         # C, gamma ranges
-        self.position = [random.uniform(bounds[0][0], bounds[0][1]),
-                         random.uniform(bounds[1][0], bounds[1][1])]
+        self.position = [
+            random.uniform(bounds[0][0], bounds[0][1]),
+            random.uniform(bounds[1][0], bounds[1][1])
+        ]
         self.velocity = [random.uniform(-1, 1), random.uniform(-1, 1)]
         self.best_pos = list(self.position)
         self.best_val = fitness_function(self.position)
@@ -75,9 +77,9 @@ def particle_swarm_optimization(num_particles=20, max_iter=30):
 
 
 # --- Run the program ---
-if _name_ == "_main_":
+if __name__ == "__main__":
     best_pos, best_val = particle_swarm_optimization()
     print("\n✅ Optimization complete!")
     print(f"Best Parameters: C = {best_pos[0]:.4f}, gamma = {best_pos[1]:.4f}")
     print(f"Best Accuracy: {(1 - best_val):.4f}")
-	
+
