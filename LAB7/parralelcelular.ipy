@@ -1,0 +1,58 @@
+import numpy as np
+import matplotlib.pyplot as plt
+from skimage import data, color, img_as_float
+from scipy.spatial.distance import cdist
+
+# ----- Load and preprocess image -----
+image = color.rgb2gray(img_as_float(data.astronaut()))  # sample image
+image = image[0:128, 0:128]  # resize for speed
+plt.imshow(image, cmap='gray')
+plt.title("Original Image")
+plt.show()
+
+# ----- Parameters -----
+grid_size = 10  # 10x10 clusters
+clusters = np.random.uniform(0, 1, (grid_size, grid_size))  # cluster centers
+num_generations = 50
+learning_rate = 0.3
+mutation_rate = 0.1
+
+# ----- PCA Evolution -----
+for gen in range(num_generations):
+    new_clusters = np.copy(clusters)
+    for i in range(grid_size):
+        for j in range(grid_size):
+            # Define neighborhood (Von Neumann)
+            neighbors = [((i-1)%grid_size, j), ((i+1)%grid_size, j),
+                         (i, (j-1)%grid_size), (i, (j+1)%grid_size)]
+            
+            # Compute average of neighbor cluster centers
+            neighbor_values = [clusters[n] for n in neighbors]
+            avg_neighbor = np.mean(neighbor_values)
+            
+            # Update cell towards neighbor average
+            new_val = clusters[i, j] + learning_rate * (avg_neighbor - clusters[i, j])
+            
+            # Mutation
+            if np.random.rand() < mutation_rate:
+                new_val += np.random.normal(0, 0.05)
+            
+            new_clusters[i, j] = np.clip(new_val, 0, 1)
+    clusters = new_clusters
+
+# ----- Assign each pixel to nearest cluster -----
+flat_clusters = clusters.flatten().reshape(-1, 1)
+flat_image = image.flatten().reshape(-1, 1)
+distances = cdist(flat_image, flat_clusters)
+labels = np.argmin(distances, axis=1)
+segmented_image = clusters.flatten()[labels].reshape(image.shape)
+
+# ----- Display results -----
+plt.figure(figsize=(10,4))
+plt.subplot(1,2,1)
+plt.imshow(image, cmap='gray')
+plt.title("Original Image")
+plt.subplot(1,2,2)
+plt.imshow(segmented_image, cmap='gray')
+plt.title("Segmented Image (PCA-based)")
+plt.show()
